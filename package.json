@@ -1,0 +1,24 @@
+{
+  "name": "sucor-test-ts",
+  "version": "1.0.0",
+  "description": "Tes PT Sucor",
+  "main": "index.js",
+  "scripts": {
+    "test": "run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nurramdandoni/sucor-test-ts.git"
+  },
+  "keywords": [
+    "TypeScript",
+    "Simple",
+    "Project"
+  ],
+  "author": "Doni Nurramdan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nurramdandoni/sucor-test-ts/issues"
+  },
+  "homepage": "https://github.com/nurramdandoni/sucor-test-ts#readme"
+}
