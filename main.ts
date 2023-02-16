@@ -12,7 +12,26 @@ interface User {
   email: string;
   verified: boolean;
   birthday?: Date;
+  namaDepan?:string;
+  namaBelakang?:string;
 }
+// interface UserSend extends User {
+//     idUser: number,
+//     name: string;
+//     email: string;
+//     verified: boolean;
+//     birthday?: Date;
+//     username: string,
+//     password: string,
+//     status: string,
+//     idProfile: number,
+//     namaDepan: string,
+//     namaBelakang: string,
+//     jeniskelamin: string,
+//     tempatLahir: Date,
+//     tanggalLahir: Date,    
+//     ketBio: string
+// }
 
 interface NotificationParams {
     to: string;
@@ -46,11 +65,11 @@ const fetchUsers = async (params: UserFilterField): Promise<User[]> => {
 
   // Build the query
   //   1b get data user dengan parameter email, status user dan validasi tanggal lahir user
-  let query = 'SELECT * FROM users a join profile b on a.idUser=b.idUser WHERE a.email = ?';
-  const paramsQuery = [params.email];
+  let query = 'SELECT * FROM users a join profile b on a.idUser=b.idUser WHERE ';
+  const paramsQuery = [];
 
   if (params.verifiedStatus !== undefined) {
-    query += ' AND a.status = ?';
+    query += ' a.status = ?';
     paramsQuery.push(params.verifiedStatus);
   }
 
@@ -60,7 +79,7 @@ const fetchUsers = async (params: UserFilterField): Promise<User[]> => {
     const day = today.getDate();
       query += ` AND MONTH(b.tanggalLahir) = ${month} AND DAY(b.tanggalLahir) = ${day}`;
   }
-
+//   console.log(query)
   // Execute the query and return the results
   //   1c eksekusi query sebagai array 
   const [rows] = await connection.execute(query, paramsQuery);
@@ -135,17 +154,21 @@ const sendNotification = async (params: NotificationParams) => {
 fetchUsers({email:"nurramdandoni@gmail.com",verifiedStatus:"Active",isBirthday:true})
 .then(
   (users) => {
-    console.log(users);
-    const params: NotificationParams = {
-        to: "nurramdandoni@gmail.com",
-        subject: "Test Email Suco",
-        text: "This is a test email Suco",
-      };
+    console.log("Hasil",users);
     //   ROle 2 Looping User List
-    //   Role 3 Generate Code Promo Per User
-    generatePromoCode({name:"TEst", startDate:"2023-03-01", endDate:"2023-03-04",idNotifikasi:1})
-    //   Role 4 Send Email
-    // sendNotification(params)
+    for(let i=0;i<users.length;i++){
+        const dataUser: User = users[i]
+        // console.log("param Send ",dataUser.namaDepan)
+        //   Role 3 Generate Code Promo Per User
+        const datapromo = generatePromoCode({name:"Promo Ulang Tahun", startDate:"2023-03-01", endDate:"2023-03-04",idNotifikasi:1})
+        const params: NotificationParams = {
+            to: dataUser.email,
+            subject: "Promo Spesial Ulang Tahun",
+            text: `Selamat Ulang Tahun ${dataUser.namaDepan} ${dataUser.namaBelakang} ada Promo Spesial Untukmu`,
+          };
+        //   Role 4 Send Email
+        sendNotification(params)
+    }
   }
 ).catch(
   (err) => {
