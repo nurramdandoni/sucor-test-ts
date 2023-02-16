@@ -16,6 +16,7 @@ const promise_1 = __importDefault(require("mysql2/promise"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const fetchUsers = (params) => __awaiter(void 0, void 0, void 0, function* () {
     // Connect to the database
+    //   1a KOneksi database mysql
     const connection = yield promise_1.default.createConnection({
         host: 'localhost',
         user: 'root',
@@ -23,6 +24,7 @@ const fetchUsers = (params) => __awaiter(void 0, void 0, void 0, function* () {
         database: 'suco'
     });
     // Build the query
+    //   1b get data user dengan parameter email, status user dan validasi tanggal lahir user
     let query = 'SELECT * FROM users a join profile b on a.idUser=b.idUser WHERE a.email = ?';
     const paramsQuery = [params.email];
     if (params.verifiedStatus !== undefined) {
@@ -36,6 +38,7 @@ const fetchUsers = (params) => __awaiter(void 0, void 0, void 0, function* () {
         query += ` AND MONTH(b.tanggalLahir) = ${month} AND DAY(b.tanggalLahir) = ${day}`;
     }
     // Execute the query and return the results
+    //   1c eksekusi query sebagai array 
     const [rows] = yield connection.execute(query, paramsQuery);
     return rows;
 });
@@ -44,7 +47,7 @@ const sendNotification = (params) => __awaiter(void 0, void 0, void 0, function*
         service: "gmail",
         auth: {
             user: "nurramdandoni@gmail.com",
-            pass: "bzjbpzstogabfjfp",
+            pass: "bzjbpzstogabfjfp", // ubah dengan sandi sementara anda
         },
     });
     const mailOptions = {
@@ -61,6 +64,35 @@ const sendNotification = (params) => __awaiter(void 0, void 0, void 0, function*
         console.error("Failed to send email: ", err);
     }
 });
+const generatePromoCode = ({ name, startDate, endDate, idNotifikasi }) => __awaiter(void 0, void 0, void 0, function* () {
+    // Generate unique code
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    // Store the promo code data in database
+    const connection = yield promise_1.default.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: '',
+        database: 'suco'
+    });
+    const queryGetNotificationInfo = 'SELECT * FROM notifikasi WHERE idNotifikasi = ?';
+    const paramsNotifInfo = [idNotifikasi];
+    const getInfo = yield connection.execute(queryGetNotificationInfo, paramsNotifInfo);
+    const info = getInfo[0][0];
+    const query = 'INSERT INTO promo (kodePromo, namaPromo, tanggalMulai, tanggalAkhir,idNotifikasi) VALUES (?, ?, ?, ?, ?)';
+    const params = [code, name, startDate, endDate, idNotifikasi];
+    yield connection.execute(query, params);
+    // Return the generated promo code data
+    const promoCode = {
+        code,
+        name: info.namaNotifikasi,
+        startDate,
+        endDate
+    };
+    console.log(promoCode);
+    return promoCode;
+});
+// ROle 0 : Scheduler Waktu Tertentu
+// ROle 1 Flowchart funcsi untuk menampilkan User Yang Valid dan Berulang tahun hari ini 
 fetchUsers({ email: "nurramdandoni@gmail.com", verifiedStatus: "Active", isBirthday: true })
     .then((users) => {
     console.log(users);
@@ -69,7 +101,11 @@ fetchUsers({ email: "nurramdandoni@gmail.com", verifiedStatus: "Active", isBirth
         subject: "Test Email Suco",
         text: "This is a test email Suco",
     };
-    sendNotification(params);
+    //   ROle 2 Looping User List
+    //   Role 3 Generate Code Promo Per User
+    generatePromoCode({ name: "TEst", startDate: "2023-03-01", endDate: "2023-03-04", idNotifikasi: 1 });
+    //   Role 4 Send Email
+    // sendNotification(params)
 }).catch((err) => {
     console.log(err);
 });

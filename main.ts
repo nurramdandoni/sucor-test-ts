@@ -20,6 +20,20 @@ interface NotificationParams {
     text: string;
   }
 
+  interface CreatePromoField {
+    name: string;
+    startDate: string;
+    endDate: string;
+    idNotifikasi:number;
+  }
+  
+  interface PromoCode {
+    code: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+  }
+
 const fetchUsers = async (params: UserFilterField): Promise<User[]> => {
   // Connect to the database
   //   1a KOneksi database mysql
@@ -78,6 +92,42 @@ const sendNotification = async (params: NotificationParams) => {
     }
   }
 
+  const generatePromoCode = async ({name, startDate, endDate,idNotifikasi}: CreatePromoField): Promise<PromoCode> => {
+    // Generate unique code
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  
+    // Store the promo code data in database
+    const connection = await mysql.createConnection({
+      host: 'localhost',
+      user: 'root',
+      password: '',
+      database: 'suco'
+    });
+    const queryGetNotificationInfo = 'SELECT * FROM notifikasi WHERE idNotifikasi = ?';
+    const paramsNotifInfo = [idNotifikasi]
+    const getInfo:any= await connection.execute(queryGetNotificationInfo,paramsNotifInfo);
+    const info:{
+        idNotifikasi: number,
+        namaNotifikasi: string,
+        amount: number,
+        percent: number,
+        keteranganNotifikasi:string
+    } = getInfo[0][0]
+    const query = 'INSERT INTO promo (kodePromo, namaPromo, tanggalMulai, tanggalAkhir,idNotifikasi) VALUES (?, ?, ?, ?, ?)';
+    const params = [code,name, startDate, endDate,idNotifikasi];
+    await connection.execute(query, params);
+  
+    // Return the generated promo code data
+    const promoCode: PromoCode = {
+      code,
+      name:info.namaNotifikasi,
+      startDate,
+      endDate
+    };
+    console.log(promoCode)
+    return promoCode;
+  };
+
 
 // ROle 0 : Scheduler Waktu Tertentu
 
@@ -93,8 +143,9 @@ fetchUsers({email:"nurramdandoni@gmail.com",verifiedStatus:"Active",isBirthday:t
       };
     //   ROle 2 Looping User List
     //   Role 3 Generate Code Promo Per User
+    generatePromoCode({name:"TEst", startDate:"2023-03-01", endDate:"2023-03-04",idNotifikasi:1})
     //   Role 4 Send Email
-    sendNotification(params)
+    // sendNotification(params)
   }
 ).catch(
   (err) => {
