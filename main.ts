@@ -22,6 +22,7 @@ interface NotificationParams {
 
 const fetchUsers = async (params: UserFilterField): Promise<User[]> => {
   // Connect to the database
+  //   1a KOneksi database mysql
   const connection = await mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -30,6 +31,7 @@ const fetchUsers = async (params: UserFilterField): Promise<User[]> => {
   });
 
   // Build the query
+  //   1b get data user dengan parameter email, status user dan validasi tanggal lahir user
   let query = 'SELECT * FROM users a join profile b on a.idUser=b.idUser WHERE a.email = ?';
   const paramsQuery = [params.email];
 
@@ -46,6 +48,7 @@ const fetchUsers = async (params: UserFilterField): Promise<User[]> => {
   }
 
   // Execute the query and return the results
+  //   1c eksekusi query sebagai array 
   const [rows] = await connection.execute(query, paramsQuery);
   return rows as User[];
 
@@ -75,6 +78,10 @@ const sendNotification = async (params: NotificationParams) => {
     }
   }
 
+
+// ROle 0 : Scheduler Waktu Tertentu
+
+// ROle 1 Flowchart funcsi untuk menampilkan User Yang Valid dan Berulang tahun hari ini 
 fetchUsers({email:"nurramdandoni@gmail.com",verifiedStatus:"Active",isBirthday:true})
 .then(
   (users) => {
@@ -84,6 +91,9 @@ fetchUsers({email:"nurramdandoni@gmail.com",verifiedStatus:"Active",isBirthday:t
         subject: "Test Email Suco",
         text: "This is a test email Suco",
       };
+    //   ROle 2 Looping User List
+    //   Role 3 Generate Code Promo Per User
+    //   Role 4 Send Email
     sendNotification(params)
   }
 ).catch(
