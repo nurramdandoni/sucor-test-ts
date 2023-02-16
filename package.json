@@ -25,11 +25,13 @@
     "bluebird": "^3.7.2",
     "mysql": "^2.18.1",
     "mysql2": "^3.1.2",
+    "node-cron": "^3.0.2",
     "nodemailer": "^6.9.1"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.38",
     "@types/mysql": "^2.15.21",
+    "@types/node-cron": "^3.0.7",
     "@types/nodemailer": "^6.4.7"
   }
 }

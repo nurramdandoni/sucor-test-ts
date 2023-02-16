@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const promise_1 = __importDefault(require("mysql2/promise"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
+const node_cron_1 = __importDefault(require("node-cron"));
 const fetchUsers = (params) => __awaiter(void 0, void 0, void 0, function* () {
     // Connect to the database
     //   1a KOneksi database mysql
@@ -92,25 +93,30 @@ const generatePromoCode = ({ name, startDate, endDate, idNotifikasi }) => __awai
     console.log(promoCode);
     return promoCode;
 });
-// ROle 0 : Scheduler Waktu Tertentu
-// ROle 1 Flowchart funcsi untuk menampilkan User Yang Valid dan Berulang tahun hari ini 
-fetchUsers({ email: "nurramdandoni@gmail.com", verifiedStatus: "Active", isBirthday: true })
-    .then((users) => {
-    console.log("Hasil", users);
-    //   ROle 2 Looping User List
-    for (let i = 0; i < users.length; i++) {
-        const dataUser = users[i];
-        // console.log("param Send ",dataUser.namaDepan)
-        //   Role 3 Generate Code Promo Per User
-        const datapromo = generatePromoCode({ name: "Promo Ulang Tahun", startDate: "2023-03-01", endDate: "2023-03-04", idNotifikasi: 1 });
-        const params = {
-            to: dataUser.email,
-            subject: "Promo Spesial Ulang Tahun",
-            text: `Selamat Ulang Tahun ${dataUser.namaDepan} ${dataUser.namaBelakang} ada Promo Spesial Untukmu`,
-        };
-        //   Role 4 Send Email
-        sendNotification(params);
-    }
-}).catch((err) => {
-    console.log(err);
+// ROle 0 : Scheduler Waktu Tertentu dikirim setiap pukul 08:30. jika ignin setiap menit * * * * *
+const task = node_cron_1.default.schedule('* * * * *', () => {
+    // kode inti
+    // ROle 1 Flowchart funcsi untuk menampilkan User Yang Valid dan Berulang tahun hari ini 
+    fetchUsers({ email: "nurramdandoni@gmail.com", verifiedStatus: "Active", isBirthday: true })
+        .then((users) => {
+        console.log("Hasil", users);
+        //   ROle 2 Looping User List
+        for (let i = 0; i < users.length; i++) {
+            const dataUser = users[i];
+            // console.log("param Send ",dataUser.namaDepan)
+            //   Role 3 Generate Code Promo Per User
+            const datapromo = generatePromoCode({ name: "Promo Ulang Tahun", startDate: "2023-03-01", endDate: "2023-03-04", idNotifikasi: 1 });
+            const params = {
+                to: dataUser.email,
+                subject: "Promo Spesial Ulang Tahun",
+                text: `Selamat Ulang Tahun ${dataUser.namaDepan} ${dataUser.namaBelakang} ada Promo Spesial Untukmu`,
+            };
+            //   Role 4 Send Email
+            sendNotification(params);
+        }
+    }).catch((err) => {
+        console.log(err);
+    });
 });
+//   panggil task
+task.start();
